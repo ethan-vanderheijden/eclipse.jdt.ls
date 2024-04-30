@@ -165,6 +165,7 @@ public abstract class ProjectsManager implements ISaveParticipant, IProjectsMana
 						}
 					}
 				}
+				System.out.println("imported: " + rootFolder.getName());
 			} catch (CoreException e) {
 				// if a rootPath import failed, keep importing the next rootPath
 				importStatusCollection.add(e.getStatus());
@@ -302,12 +303,15 @@ public abstract class ProjectsManager implements ISaveParticipant, IProjectsMana
 			public IStatus runInWorkspace(IProgressMonitor monitor) {
 				IStatus status = Status.OK_STATUS;
 				SubMonitor subMonitor = SubMonitor.convert(monitor, addedRootPaths.size() + removedRootPaths.size());
+				System.out.println("Starting this thing");
 				try {
 					long start = System.currentTimeMillis();
 					IProject[] projects = getWorkspaceRoot().getProjects();
 					for (IProject project : projects) {
-						if (ResourceUtils.isContainedIn(project.getLocation(), removedRootPaths)) {
+						System.out.println("should I delete: " + project.getName() + " " + project.getLocation());
+						if (ResourceUtils.isContainedIn(ProjectUtils.getProjectRealFolder(project), removedRootPaths)) {
 							try {
+								System.out.println("deleting project: " + project.getName());
 								project.delete(false, true, subMonitor.split(1));
 							} catch (CoreException e) {
 								JavaLanguageServerPlugin.logException("Problems removing '" + project.getName() + "' from workspace.", e);
@@ -322,11 +326,13 @@ public abstract class ProjectsManager implements ISaveParticipant, IProjectsMana
 					JavaLanguageServerPlugin.logInfo(getWorkspaceInfo());
 					return Status.OK_STATUS;
 				} catch (CoreException e) {
+					System.out.println("Error " + e);
 					String msg = "Error updating workspace folders";
 					JavaLanguageServerPlugin.logError(msg);
 					status = StatusFactory.newErrorStatus(msg, e);
 				}
 
+				System.out.println("clearing invalid projects");
 				cleanInvalidProjects(preferenceManager.getPreferences().getRootPaths(), monitor);
 				return status;
 			}

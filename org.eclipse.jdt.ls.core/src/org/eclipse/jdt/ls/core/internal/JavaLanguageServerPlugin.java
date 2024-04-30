@@ -47,6 +47,9 @@ import org.eclipse.jdt.internal.core.search.indexing.IndexManager;
 import org.eclipse.jdt.internal.corext.util.TypeFilter;
 import org.eclipse.jdt.ls.core.contentassist.ICompletionContributionService;
 import org.eclipse.jdt.ls.core.internal.JavaClientConnection.JavaLanguageClient;
+import org.eclipse.jdt.ls.core.internal.concurrent.ConcurrentClientWrapper;
+import org.eclipse.jdt.ls.core.internal.concurrent.ConcurrentLanguageServer;
+import org.eclipse.jdt.ls.core.internal.concurrent.TCPServer;
 import org.eclipse.jdt.ls.core.internal.corext.template.java.JavaContextTypeRegistry;
 import org.eclipse.jdt.ls.core.internal.corext.template.java.JavaLanguageServerTemplateStore;
 import org.eclipse.jdt.ls.core.internal.handlers.CompletionContributionService;
@@ -327,6 +330,8 @@ public class JavaLanguageServerPlugin extends Plugin {
 		ExecutorService executorService = getExecutorService();
 		if (JDTEnvironmentUtils.isSyntaxServer()) {
 			protocol = new SyntaxLanguageServer(contentProviderManager, projectsManager, preferenceManager);
+		} else if (!JDTEnvironmentUtils.inSocketStreamDebugMode()) {
+			protocol = new ConcurrentLanguageServer(projectsManager, preferenceManager, telemetryManager);
 		} else {
 			protocol = new JDTLanguageServer(projectsManager, preferenceManager, telemetryManager);
 		}
@@ -345,18 +350,24 @@ public class JavaLanguageServerPlugin extends Plugin {
 				throw new RuntimeException("Error when opening a socket channel at " + host + ":" + port + ".", e);
 			}
 		} else {
-			ConnectionStreamFactory connectionFactory = new ConnectionStreamFactory(languageServer);
-			InputStream in = connectionFactory.getInputStream();
-			OutputStream out = connectionFactory.getOutputStream();
+			TCPServer proxy = new TCPServer();
 			Function<MessageConsumer, MessageConsumer> wrapper;
 			if ("false".equals(System.getProperty("watchParentProcess"))) {
 				wrapper = it -> it;
 			} else {
 				wrapper = new ParentProcessWatcher(this.languageServer);
 			}
-			launcher = Launcher.createLauncher(protocol, JavaLanguageClient.class, in, out, executorService, wrapper);
+			launcher = Launcher.createLauncher(
+				protocol,
+				JavaLanguageClient.class,
+				proxy.getIn(),
+				proxy.getOut(),
+				executorService,
+				wrapper
+			);
 		}
-		protocol.connectClient(launcher.getRemoteProxy());
+		JavaLanguageClient remoteProxy = ConcurrentClientWrapper.wrap(launcher.getRemoteProxy());
+		protocol.connectClient(remoteProxy);
 		launcher.startListening();
 		logHandler.setClientConnection(pluginInstance.getClientConnection());
 	}

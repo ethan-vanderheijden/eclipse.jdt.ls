@@ -137,6 +137,10 @@ public class StandardProjectsManager extends ProjectsManager {
 
 	private void deleteInvalidProjects(Collection<IPath> rootPaths, IProgressMonitor monitor) {
 		List<String> workspaceProjects = rootPaths.stream().map((IPath rootPath) -> ProjectUtils.getWorkspaceInvisibleProjectName(rootPath)).collect(Collectors.toList());
+		System.out.println("Candidates:");
+		for(String proj : workspaceProjects) {
+			System.out.println(proj);
+		}
 		ArrayList<IProject> deleteProjectCandates = new ArrayList<>();
 		for (IProject project : ProjectUtils.getAllProjects()) {
 			if (project.equals(getDefaultProject())) {
@@ -149,6 +153,7 @@ public class StandardProjectsManager extends ProjectsManager {
 				hasSpecificDeleteProjectLogic = buildSupportOpt.get().hasSpecificDeleteProjectLogic();
 			}
 
+			System.out.println("checking " + project.getLocation());
 			if (project.exists() && (ResourceUtils.isContainedIn(project.getLocation(), rootPaths) || workspaceProjects.contains(project.getName()) || hasSpecificDeleteProjectLogic)) {
 				try {
 					project.getDescription();
@@ -156,6 +161,7 @@ public class StandardProjectsManager extends ProjectsManager {
 						deleteProjectCandates.add(project);
 					}
 				} catch (CoreException e) {
+					System.out.println("deleting in cleanup");
 					try {
 						project.delete(true, monitor);
 					} catch (CoreException e1) {

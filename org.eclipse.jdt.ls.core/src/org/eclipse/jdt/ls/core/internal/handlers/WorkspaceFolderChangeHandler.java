@@ -40,12 +40,14 @@ public class WorkspaceFolderChangeHandler {
 		for (WorkspaceFolder folder : params.getEvent().getAdded()) {
 			IPath rootPath = ResourceUtils.canonicalFilePathFromURI(folder.getUri());
 			if (rootPath != null) {
+				System.out.println("Actually adding: " + rootPath);
 				addedRootPaths.add(rootPath);
 			}
 		}
 		for (WorkspaceFolder folder : params.getEvent().getRemoved()) {
 			IPath rootPath = ResourceUtils.canonicalFilePathFromURI(folder.getUri());
 			if (rootPath != null) {
+				System.out.println("Actually removing: " + rootPath);
 				removedRootPaths.add(rootPath);
 			}
 		}

@@ -237,6 +237,7 @@ public class JDTLanguageServer extends BaseJDTLanguageServer implements Language
 	}
 
 	public JDTLanguageServer(ProjectsManager projects, PreferenceManager preferenceManager, WorkspaceExecuteCommandHandler commandHandler, TelemetryManager telemetryManager) {
+		System.out.println("Creating JDTLanguageServer");
 		this.pm = projects;
 		this.preferenceManager = preferenceManager;
 		this.jvmConfigurator = new JVMConfigurator();

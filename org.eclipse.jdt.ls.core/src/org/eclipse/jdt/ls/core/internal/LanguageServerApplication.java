@@ -51,6 +51,7 @@ public class LanguageServerApplication implements IApplication {
 	public Object start(IApplicationContext context) throws Exception {
 		prepareWorkspace();
 		prepareStreams();
+		System.out.println("Starting LanguageServerApplication");
 		JavaLanguageServerPlugin.startLanguageServer(this);
 		if (JavaLanguageServerPlugin.getInstance().getProtocol() instanceof JDTLanguageServer server) {
 			progressReporterManager = server.getProgressReporterManager();
@@ -129,16 +130,16 @@ public class LanguageServerApplication implements IApplication {
 			File outFile = new File(rootFile, ".out-" + id + ".log");
 			try {
 				FileOutputStream stdFileOut = new FileOutputStream(outFile);
-				System.setOut(new PrintStream(stdFileOut));
+				//System.setOut(new PrintStream(stdFileOut));
 				File errFile = new File(rootFile, ".error-" + id + ".log");
 				FileOutputStream stdFileErr = new FileOutputStream(errFile);
-				System.setErr(new PrintStream(stdFileErr));
+				//System.setErr(new PrintStream(stdFileErr));
 			} catch (FileNotFoundException e) {
 				JavaLanguageServerPlugin.logException(e.getMessage(), e);
 			}
 		} else {
-			System.setOut(new PrintStream(new ByteArrayOutputStream()));
-			System.setErr(new PrintStream(new ByteArrayOutputStream()));
+			//System.setOut(new PrintStream(new ByteArrayOutputStream()));
+			//System.setErr(new PrintStream(new ByteArrayOutputStream()));
 		}
 	}
 
