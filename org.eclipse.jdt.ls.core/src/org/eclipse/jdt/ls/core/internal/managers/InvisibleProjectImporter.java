@@ -468,15 +468,18 @@ public class InvisibleProjectImporter extends AbstractProjectImporter {
 		int index = segments.lastIndexOf("src");
 		if (index <= 0) {
 			return false;
-		}
+		} 
 
 		IPath srcPath = sourcePath.removeLastSegments(segments.size() -1 - index);
 		IPath container = srcPath.removeLastSegments(1);
-		return container.append(MavenProjectImporter.POM_FILE).toFile().exists()
-			|| container.append(GradleProjectImporter.BUILD_GRADLE_DESCRIPTOR).toFile().exists()
-			|| container.append(GradleProjectImporter.SETTINGS_GRADLE_DESCRIPTOR).toFile().exists()
-			|| container.append(GradleProjectImporter.BUILD_GRADLE_KTS_DESCRIPTOR).toFile().exists()
-			|| container.append(GradleProjectImporter.SETTINGS_GRADLE_KTS_DESCRIPTOR).toFile().exists();
+		PreferenceManager preferenceManager = JavaLanguageServerPlugin.getPreferencesManager();
+		return (preferenceManager.getPreferences().isImportMavenEnabled()
+					&& container.append(MavenProjectImporter.POM_FILE).toFile().exists())
+				|| (preferenceManager.getPreferences().isImportMavenEnabled()
+					&& (container.append(GradleProjectImporter.BUILD_GRADLE_DESCRIPTOR).toFile().exists()
+						|| container.append(GradleProjectImporter.SETTINGS_GRADLE_DESCRIPTOR).toFile().exists()
+						|| container.append(GradleProjectImporter.BUILD_GRADLE_KTS_DESCRIPTOR).toFile().exists()
+						|| container.append(GradleProjectImporter.SETTINGS_GRADLE_KTS_DESCRIPTOR).toFile().exists()));
 	}
 
 	private static String getPackageName(IPath javaFile, IPath workspaceRoot) {
